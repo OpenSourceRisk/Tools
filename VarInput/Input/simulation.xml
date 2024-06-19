@@ -1,0 +1,326 @@
+<Simulation>
+	<Parameters>
+		<Grid>236,1M</Grid>
+		<Calendar>EUR,AUD,CAD,CHF,GBP,JPY,USD</Calendar>
+		<Sequence>SobolBrownianBridge</Sequence>
+		<Seed>42</Seed>
+		<Samples>1000</Samples>
+		<Ordering>Steps</Ordering>
+		<DirectionIntegers>JoeKuoD7</DirectionIntegers>
+		<DayCounter>A365</DayCounter>
+	</Parameters>
+	<CrossAssetModel>
+		<Discretization>Exact</Discretization>
+		<DomesticCcy>EUR</DomesticCcy>
+		<Currencies>
+			<Currency>EUR</Currency>
+			<Currency>AUD</Currency>
+			<Currency>CAD</Currency>
+			<Currency>CHF</Currency>
+			<Currency>GBP</Currency>
+			<Currency>JPY</Currency>
+			<Currency>USD</Currency>
+		</Currencies><!-- 0.0001 0.03-->
+		<BootstrapTolerance>0.0001</BootstrapTolerance>
+		<InterestRateModels>
+			<LGM key="default">
+				<CalibrationType>Bootstrap</CalibrationType>
+				<Volatility>
+					<Calibrate>Y</Calibrate>
+					<VolatilityType>Hagan</VolatilityType>
+					<ParamType>Piecewise</ParamType>
+					<TimeGrid>1.0, 2.0, 3.0, 4.0, 5.0, 7.0, 10.0</TimeGrid>
+					<InitialValue>0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01</InitialValue>
+				</Volatility>
+				<Reversion>
+					<Calibrate>N</Calibrate>
+					<ReversionType>HullWhite</ReversionType>
+					<ParamType>Constant</ParamType>
+					<TimeGrid/>
+					<InitialValue>0.030000000000</InitialValue>
+				</Reversion>
+				<CalibrationSwaptions>
+					<Expiries>1Y,2Y,4Y,6Y,8Y,10Y,12Y,14Y,16Y,18Y,19Y</Expiries>
+					<Terms>19Y,18Y,16Y,14Y,12Y,10Y,8Y,6Y,4Y,2Y,1Y</Terms>
+				</CalibrationSwaptions>
+				<ParameterTransformation>
+					<ShiftHorizon>0.000000000000</ShiftHorizon>
+					<Scaling>1.000000000000</Scaling>
+				</ParameterTransformation>
+			</LGM>
+			<LGM key="AUD">
+				<CalibrationType>BestFit</CalibrationType>
+				<Volatility>
+					<Calibrate>Y</Calibrate>
+					<VolatilityType>Hagan</VolatilityType>
+					<ParamType>Piecewise</ParamType>
+					<TimeGrid>1.0, 2.0, 3.0, 4.0, 5.0, 7.0</TimeGrid>
+					<InitialValue>0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01</InitialValue>
+				</Volatility>
+				<Reversion>
+					<Calibrate>N</Calibrate>
+					<ReversionType>HullWhite</ReversionType>
+					<ParamType>Constant</ParamType>
+					<TimeGrid/>
+					<InitialValue>0.030000000000</InitialValue>
+				</Reversion>
+				<CalibrationSwaptions>
+					<Expiries>1Y,2Y,4Y,6Y,8Y,10Y,12Y,14Y,16Y,18Y,19Y</Expiries>
+					<Terms>19Y,18Y,16Y,14Y,12Y,10Y,8Y,6Y,4Y,2Y,1Y</Terms>
+				</CalibrationSwaptions>
+				<ParameterTransformation>
+					<ShiftHorizon>0.000000000000</ShiftHorizon>
+					<Scaling>1.000000000000</Scaling>
+				</ParameterTransformation>
+			</LGM>
+			<LGM key="CAD">
+				<CalibrationType>BestFit</CalibrationType>
+				<Volatility>
+					<Calibrate>Y</Calibrate>
+					<VolatilityType>Hagan</VolatilityType>
+					<ParamType>Piecewise</ParamType>
+					<TimeGrid>1.0, 2.0, 3.0, 4.0, 5.0, 7.0</TimeGrid>
+					<InitialValue>0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01</InitialValue>
+				</Volatility>
+				<Reversion>
+					<Calibrate>N</Calibrate>
+					<ReversionType>HullWhite</ReversionType>
+					<ParamType>Constant</ParamType>
+					<TimeGrid/>
+					<InitialValue>0.030000000000</InitialValue>
+				</Reversion>
+				<CalibrationSwaptions>
+					<Expiries>1Y,2Y,4Y,6Y,8Y,10Y,12Y,14Y,16Y,18Y,19Y</Expiries>
+					<Terms>19Y,18Y,16Y,14Y,12Y,10Y,8Y,6Y,4Y,2Y,1Y</Terms>
+				</CalibrationSwaptions>
+				<ParameterTransformation>
+					<ShiftHorizon>0.000000000000</ShiftHorizon>
+					<Scaling>1.000000000000</Scaling>
+				</ParameterTransformation>
+			</LGM>
+		</InterestRateModels>
+		<ForeignExchangeModels>
+			<CrossCcyLGM foreignCcy="USD">
+				<DomesticCcy>EUR</DomesticCcy>
+				<CalibrationType>Bootstrap</CalibrationType>
+				<Sigma>
+					<Calibrate>Y</Calibrate>
+					<ParamType>Piecewise</ParamType>
+					<TimeGrid>1.0, 2.0, 3.0, 4.0, 5.0, 7.0, 10.0</TimeGrid>
+					<InitialValue>0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1</InitialValue>
+				</Sigma>
+				<CalibrationOptions>
+					<Expiries>1Y, 2Y, 3Y, 4Y, 5Y, 7Y, 10Y</Expiries>
+				</CalibrationOptions>
+			</CrossCcyLGM>
+			<CrossCcyLGM foreignCcy="JPY">
+				<DomesticCcy>EUR</DomesticCcy>
+				<CalibrationType>Bootstrap</CalibrationType>
+				<Sigma>
+					<Calibrate>Y</Calibrate>
+					<ParamType>Piecewise</ParamType>
+					<TimeGrid>1.0, 2.0, 3.0, 4.0, 5.0, 7.0, 10.0</TimeGrid>
+					<InitialValue>0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1</InitialValue>
+				</Sigma>
+				<CalibrationOptions>
+					<Expiries>1Y, 2Y, 3Y, 4Y, 5Y, 7Y, 10Y</Expiries>
+				</CalibrationOptions>
+			</CrossCcyLGM>
+			<CrossCcyLGM foreignCcy="GBP">
+				<DomesticCcy>EUR</DomesticCcy>
+				<CalibrationType>BestFit</CalibrationType>
+				<Sigma>
+					<Calibrate>Y</Calibrate>
+					<ParamType>Piecewise</ParamType>
+					<TimeGrid>1.0, 2.0, 3.0, 5.0, 7.0, 10.0</TimeGrid>
+					<InitialValue>0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1</InitialValue>
+				</Sigma>
+				<CalibrationOptions>
+					<Expiries>6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y</Expiries>
+				</CalibrationOptions>
+			</CrossCcyLGM>
+			<CrossCcyLGM foreignCcy="CHF">
+				<DomesticCcy>EUR</DomesticCcy>
+				<CalibrationType>BestFit</CalibrationType>
+				<Sigma>
+					<Calibrate>Y</Calibrate>
+					<ParamType>Piecewise</ParamType>
+					<TimeGrid>1.0,2.0,3.0,5.0,7.0</TimeGrid>
+					<InitialValue>0.1,0.1,0.1,0.1,0.1,0.1</InitialValue>
+				</Sigma>
+				<CalibrationOptions>
+					<Expiries>1Y, 2Y, 3Y, 5Y, 7Y, 10Y</Expiries>
+				</CalibrationOptions>
+			</CrossCcyLGM>
+			<CrossCcyLGM foreignCcy="AUD">
+				<DomesticCcy>EUR</DomesticCcy>
+				<CalibrationType>BestFit</CalibrationType>
+				<Sigma>
+					<Calibrate>Y</Calibrate>
+					<ParamType>Piecewise</ParamType>
+					<TimeGrid>1.0, 2.0, 3.0, 5.0</TimeGrid>
+					<InitialValue>0.1, 0.1, 0.1, 0.1, 0.1</InitialValue>
+				</Sigma>
+				<CalibrationOptions>
+					<Expiries>6M, 1Y, 2Y, 3Y, 5Y</Expiries>
+				</CalibrationOptions>
+			</CrossCcyLGM>
+			<CrossCcyLGM foreignCcy="CAD">
+				<DomesticCcy>EUR</DomesticCcy>
+				<CalibrationType>BestFit</CalibrationType>
+				<Sigma>
+					<Calibrate>Y</Calibrate>
+					<ParamType>Piecewise</ParamType>
+					<TimeGrid>1.0, 2.0, 3.0, 4.0, 5.0</TimeGrid>
+					<InitialValue>0.1, 0.1, 0.1, 0.1, 0.1, 0.1</InitialValue>
+				</Sigma>
+				<CalibrationOptions>
+					<Expiries>6M, 1Y, 2Y, 3Y, 4Y, 5Y</Expiries>
+				</CalibrationOptions>
+			</CrossCcyLGM>
+		</ForeignExchangeModels>
+		<InstantaneousCorrelations>
+			<Correlation factor1="FX:USDEUR" factor2="FX:GBPEUR">0.00000000</Correlation>
+			<Correlation factor1="IR:EUR" factor2="FX:USDEUR">0.00000000</Correlation>
+			<Correlation factor1="IR:EUR" factor2="IR:USD">0.00000000</Correlation>
+		</InstantaneousCorrelations>
+	</CrossAssetModel>
+	<Market>
+		<BaseCurrency>EUR</BaseCurrency>
+		<Currencies>
+			<Currency>AUD</Currency>
+			<Currency>CAD</Currency>
+			<Currency>CHF</Currency>
+			<Currency>EUR</Currency>
+			<Currency>GBP</Currency>
+			<Currency>JPY</Currency>
+			<Currency>USD</Currency>
+		</Currencies>
+		<YieldCurves>
+			<Configuration>
+				<Tenors>3M,6M,1Y,2Y,3Y,4Y,5Y,7Y,10Y,12Y,15Y,20Y</Tenors>
+				<Interpolation>LogLinear</Interpolation>
+				<Extrapolation>FlatFwd</Extrapolation>
+			</Configuration>
+		</YieldCurves>
+		<Indices>
+			<Index>AUD-BBSW-6M</Index>
+			<Index>AUD-BBSW-3M</Index>
+			<Index>CAD-CDOR-3M</Index>
+			<Index>CHF-LIBOR-12M</Index>
+			<Index>CHF-LIBOR-6M</Index>
+			<Index>CHF-LIBOR-3M</Index>
+			<Index>EUR-ESTER</Index>
+			<Index>EUR-EONIA</Index>
+			<Index>EUR-EURIBOR-12M</Index>
+			<Index>EUR-EURIBOR-3M</Index>
+			<Index>EUR-EURIBOR-6M</Index>
+			<Index>EUR-EURIBOR-1M</Index>
+			<Index>GBP-LIBOR-6M</Index>
+			<Index>GBP-LIBOR-3M</Index>
+			<Index>JPY-LIBOR-6M</Index>
+			<Index>JPY-LIBOR-3M</Index>
+			<Index>USD-LIBOR-3M</Index>
+			<Index>USD-SOFR</Index>
+			<Index>CHF-SARON</Index>
+			<Index>GBP-SONIA</Index>
+			<Index>JPY-TONAR</Index>
+		</Indices>
+		<SwapIndices>
+			<SwapIndex>
+				<Name>EUR-CMS-10Y</Name>
+				<DiscountingIndex>EUR-ESTER</DiscountingIndex>
+			</SwapIndex>
+			<SwapIndex>
+				<Name>EUR-CMS-1Y</Name>
+				<DiscountingIndex>EUR-ESTER</DiscountingIndex>
+			</SwapIndex>
+			<SwapIndex>
+				<Name>EUR-CMS-2Y</Name>
+				<DiscountingIndex>EUR-ESTER</DiscountingIndex>
+			</SwapIndex>
+			<SwapIndex>
+				<Name>EUR-CMS-30Y</Name>
+				<DiscountingIndex>EUR-ESTER</DiscountingIndex>
+			</SwapIndex>
+			<SwapIndex>
+				<Name>GBP-CMS-1Y</Name>
+				<DiscountingIndex>GBP-SONIA</DiscountingIndex>
+			</SwapIndex>
+			<SwapIndex>
+				<Name>GBP-CMS-10Y</Name>
+				<DiscountingIndex>GBP-SONIA</DiscountingIndex>
+			</SwapIndex>
+			<SwapIndex>
+				<Name>GBP-CMS-30Y</Name>
+				<DiscountingIndex>GBP-SONIA</DiscountingIndex>
+			</SwapIndex>
+		</SwapIndices>
+		<DefaultCurves>
+			<Tenors>6M,1Y,2Y</Tenors>
+			<Names/>
+		</DefaultCurves>
+		<SwaptionVolatilities>
+			<Simulate>False</Simulate>
+			<ReactionToTimeDecay>ForwardVariance</ReactionToTimeDecay>
+			<Keys>
+				<Key>AUD</Key>
+				<Key>CAD</Key>
+				<Key>CHF</Key>
+				<Key>EUR</Key>
+				<Key>GBP</Key>
+				<Key>JPY</Key>
+				<Key>USD</Key>
+			</Keys>
+			<Expiries>6M,1Y,2Y,3Y,5Y,10Y,12Y,15Y,20Y</Expiries>
+			<Terms>1Y,2Y,3Y,4Y,5Y,7Y,10Y,15Y,20Y,30Y</Terms>
+		</SwaptionVolatilities>
+		<CapFloorVolatilities>
+			<Simulate>False</Simulate>
+			<ReactionToTimeDecay>ConstantVariance</ReactionToTimeDecay>
+			<Keys>
+				<Key>EUR</Key>
+				<Key>CHF</Key>
+			</Keys>
+			<DayCounter ccy="EUR">ACT/ACT</DayCounter>
+			<Expiries>1Y,2Y,3Y,4Y,5Y,6Y,7Y,8Y,9Y,10Y,12Y,15Y,20Y,25Y,30Y</Expiries>
+			<Strikes>-0.015,-0.0125,-0.01,-0.005,-0.0025,0.00,0.0025,0.005,0.01,0.02,0.03,0.05,0.10</Strikes>
+		</CapFloorVolatilities>
+		<FxVolatilities>
+			<Simulate>False</Simulate>
+			<ReactionToTimeDecay>ForwardVariance</ReactionToTimeDecay>
+			<CurrencyPairs>
+				<CurrencyPair>USDJPY</CurrencyPair>
+				<CurrencyPair>EURCHF</CurrencyPair>
+				<CurrencyPair>EURGBP</CurrencyPair>
+			</CurrencyPairs>
+			<Expiries>6M,1Y,2Y,3Y,4Y,5Y,7Y,10Y</Expiries>
+		</FxVolatilities>
+		<Correlations>
+			<Simulate>False</Simulate>
+			<Pairs>
+				<Pair>EUR-CMS-2Y,EUR-EURIBOR-6M</Pair>
+				<Pair>EUR-CMS-2Y,EUR-EURIBOR-3M</Pair>
+				<Pair>EUR-CMS-10Y,EUR-EURIBOR-6M</Pair>
+				<Pair>EUR-CMS-10Y,EUR-EURIBOR-3M</Pair>
+				<Pair>EUR-CMS-10Y,EUR-CMS-2Y</Pair>
+				<Pair>EUR-CMS-30Y,EUR-CMS-2Y</Pair>
+				<Pair>EUR-CMS-30Y,EUR-CMS-10Y</Pair>
+			</Pairs>
+			<Expiries>1Y,2Y</Expiries>
+		</Correlations>
+		<Securities>
+			<Simulate>false</Simulate>
+			<Names>
+				<Name>SECURITY_1</Name>
+			</Names>
+		</Securities>
+		<AggregationScenarioDataCurrencies>
+			<Currency>EUR</Currency>
+		</AggregationScenarioDataCurrencies>
+		<AggregationScenarioDataIndices>
+			<Index>EUR-EONIA</Index>
+			<Index>EUR-EURIBOR-3M</Index>
+		</AggregationScenarioDataIndices>
+	</Market>
+</Simulation>
