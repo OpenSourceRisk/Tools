@@ -19,6 +19,13 @@ sensitivityFile = "Input/sensitivity.xml"
 outputcovarianceFile = 'covariance.csv'
 outputscenariosFile = 'scenarios.csv'
 
+# override standard config with VarInput.config
+if os.path.isfile('VarInput.config'):
+	with open('VarInput.config', 'r') as file:
+		config = file.read()
+	b = compile(config, 'VarInput.config', 'exec')
+	exec(b)
+
 def decodeXML(filename):
 	if not os.path.isfile(filename):
 		print("no file " + filename + " found!")
@@ -57,6 +64,7 @@ if not os.path.isfile(historicmarketdataFile):
 	print("no file " + historicmarketdataFile + " found!")
 	os._exit(1)
 df = pd.read_csv(historicmarketdataFile,sep='\t')
+df.columns = ["Date", "Name", "Value"]
 df["wholeLine"] = df["Date"].astype(str)+"\t"+df["Name"]+"\t"+df["Value"].astype(str)
 df["Date"] = pd.to_datetime(df["Date"],format="%Y%m%d")
 
