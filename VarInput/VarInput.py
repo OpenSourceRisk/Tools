@@ -21,6 +21,7 @@ outputscenariosFile = 'scenarios.csv'
 
 # override standard config with VarInput.config
 if os.path.isfile('VarInput.config'):
+	print("found VarInput.config, reading config from there")
 	with open('VarInput.config', 'r') as file:
 		config = file.read()
 	b = compile(config, 'VarInput.config', 'exec')
@@ -60,15 +61,17 @@ def ql_period_in_years(periodStr):
 	return period.length() / denominator
 
 # prepare historic market data for iterative scenario analytic
+print("reading historicmarketdataFile")
 if not os.path.isfile(historicmarketdataFile):
 	print("no file " + historicmarketdataFile + " found!")
 	os._exit(1)
-df = pd.read_csv(historicmarketdataFile,sep='\t')
+df = pd.read_csv(historicmarketdataFile,sep='\t',header=None)
 df.columns = ["Date", "Name", "Value"]
 df["wholeLine"] = df["Date"].astype(str)+"\t"+df["Name"]+"\t"+df["Value"].astype(str)
 df["Date"] = pd.to_datetime(df["Date"],format="%Y%m%d")
 
 # set up ORE for running scenario analytic
+print("set up ORE for running scenario analytic")
 inputs = ore.InputParameters()
 inputs.setResultsPath(".")
 inputs.setAllFixings(True)
@@ -95,7 +98,7 @@ for el in sensitivityDef.iterfind("./"):
 	if el.tag == "CrossGammaFilter":
 		continue
 	for subEl in el.iterfind("./"):
-		# need to change for FXSpot (from scenario report) <> FxSpot (from sensitivity.xml)
+		# need to change name for FXSpot (from scenario report) <> FxSpot (from sensitivity.xml)
 		startPattern = (subEl.tag if subEl.tag != "FxSpot" else "FXSpot") + "/" + subEl.attrib.values()[0]
 		shiftSize = float(subEl.find("./ShiftSize").text)
 		shiftType = subEl.find("./ShiftType").text
@@ -115,14 +118,16 @@ if not os.path.isfile(fixingdataFile):
 with open(fixingdataFile) as f:
     fixingsdata = ore.StrVector(f.read().splitlines())
 
-# create scenarios file as well
+# create scenarios file as well for output of historic scenarios
 if os.path.isfile(outputscenariosFile):
 	os.remove(outputscenariosFile)
 file=open(outputscenariosFile, 'w')
 
 headerRow = ""
 dfriskfact = pd.DataFrame()
+columnCount = int # the expected column count, this is taken from the report for the first historic date which should be sufficient for the required output columns
 for scenDate in df["Date"].unique():
+	print("starting ORE scenario report for " + str(scenDate))
 	# get marketdata block from history
 	marketdata = df[df["Date"] == scenDate]["wholeLine"].tolist()
 	inputs.setAsOfDate(scenDate.strftime("%Y-%m-%d"))
@@ -136,34 +141,39 @@ for scenDate in df["Date"].unique():
 	
 	# write historic scenarios, first create headerRow only once ...
 	if headerRow == "":
-		for i in range(report.columns()):
-			headerRow += report.header(i)+("\t" if i<report.columns()-1 else "")
+		columnCount = report.columns()
+		for i in range(columnCount):
+			headerRow += report.header(i)+("\t" if i < columnCount-1 else "")
 		file.write(headerRow + "\n")
-	# ... and write data row for history date
-	dataRow = report.dataAsString(0)[0]+"\t"+str(report.dataAsSize(1)[0])+"\t"
-	for i in range(2,report.columns()):
-		dataRow += str(report.dataAsReal(i)[0])+("\t" if i<report.columns()-1 else "")
-	file.write(dataRow + "\n")
+	# ... then write data row for history date and accumulate history for covariance calculation, but only if report columns are the same size as the expected column count
+	if report.columns() == columnCount:
+		dataRow = report.dataAsString(0)[0]+"\t"+str(report.dataAsSize(1)[0])+"\t"
+		for i in range(2,columnCount):
+			dataRow += str(report.dataAsReal(i)[0])+("\t" if i < columnCount-1 else "")
+		file.write(dataRow + "\n")
 
-	# accumulate history for covariance calculation, converting curves to zero rates
-	for i in range(3,report.columns()):
-		riskfactor = report.header(i)
-		riskfactorParts = riskfactor.split("/")
-		if riskfactorParts[0] == "DiscountCurve" or riskfactorParts[0] == "IndexCurve":
-			# convert curve discountfactor to zero rate before
-			dfriskfact.at[scenDate,riskfactor] = -np.log(float(report.dataAsReal(i)[0]))/tenorsYrs[int(riskfactorParts[2])]
-		else:
-			# use riskfactor value directly
-			dfriskfact.at[scenDate,riskfactor] = report.dataAsReal(i)[0]
+		# accumulate history for covariance calculation, converting curves to zero rates
+		for i in range(3,columnCount):
+			riskfactor = report.header(i)
+			riskfactorParts = riskfactor.split("/")
+			if riskfactorParts[0] == "DiscountCurve" or riskfactorParts[0] == "IndexCurve":
+				# convert curve discountfactor to zero rate before
+				dfriskfact.at[scenDate,riskfactor] = -np.log(float(report.dataAsReal(i)[0]))/tenorsYrs[int(riskfactorParts[2])]
+			else:
+				# use riskfactor value directly
+				dfriskfact.at[scenDate,riskfactor] = report.dataAsReal(i)[0]
+	else:
+		print("skipping scenario report for date " + report.dataAsString(0)[0] + " as it returned " + str(report.columns()) + " columns, which is less than the expected column count: " + str(columnCount))
 file.close()
 
 # dfriskfact.to_pickle("riskfactors")
 # dfriskfact = pd.read_pickle("riskfactors")
 
+print("calculating variance-covariance matrix from historic data")
 # transpose the risk factors so the dates are horizontal and the risk factors vertical (for np.cov)
 dfriskfactT = dfriskfact.T
 
-# calculate differencials according to shiftType and shiftSize for each riskfactor
+# calculate differentials according to shiftType and shiftSize for each riskfactor
 convLog = ""
 for shiftType in ['Absolute','Relative']:
 	values[shiftType]["data"] = pd.DataFrame()
@@ -184,7 +194,7 @@ for shiftType in ['Absolute','Relative']:
 			else:
 				values[shiftType]["data"] = pd.concat([values[shiftType]["data"], resDf], axis=0)
 
-# put all differencials together, remove missing data and calculate the variance covariance matrix
+# put all differentials together, remove missing data and calculate the variance covariance matrix
 finalDf = pd.concat([values['Absolute']["data"], values['Relative']["data"]], axis=0)
 finalDf.drop(columns=finalDf.columns[0], axis=1, inplace=True) # remove first column -> difference to delayed
 if (finalDf.isna().any().sum() > 0):
