@@ -1,6 +1,9 @@
 Attribute VB_Name = "modCalibration"
 Option Explicit
 
+'For 64-Bit versions of Excel
+Public Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As LongPtr)
+
 'Perform an Excel Goal Seek root-finding algorithm to estimate the implied volatility of each Call option
 Sub getImpliedVolForCallOptions()
     
@@ -94,7 +97,7 @@ Sub RootFindingAllIRQuote()
     DoEvents
     Application.CalculateFullRebuild
     DoEvents
-    Application.Wait (Now + TimeValue("0:00:01") / 2)
+    Sleep 500
     Call ChangeCharts
     DoEvents
     
@@ -116,7 +119,7 @@ Sub RootFindingAllIRQuote()
         '7. Refresh the spreadsheet
         Application.CalculateFullRebuild
         DoEvents
-        Application.Wait (Now + TimeValue("0:00:01") / 2)
+        Sleep 500
         
     Next i
     
@@ -190,7 +193,7 @@ Function SolverDisplayFunction(Reason As Integer)
 
      ThisWorkbook.RefreshAll
      DoEvents
-     'Application.Wait (Now + TimeValue("0:00:02"))
+     'Sleep 2000
      SolverDisplayFunction = 0
      
 End Function
@@ -198,34 +201,26 @@ End Function
 ' This function's purpose is to adjust the charts' axess scale so that we zoomed on the data in an optimal way
 Sub ChangeCharts()
     
-    'The code below is just related to visuals so we can skip if an error occures
-    On Error Resume Next
-    
-    Dim irCurveSheet As Worksheet: Set irCurveSheet = Worksheets("IRCurve")
     Dim scaleAxesRatesMinMax As Double: scaleAxesRatesMinMax = 0.075
     Dim scaleAxesDFMinMax As Double: scaleAxesDFMinMax = 0.00075
     
-    irCurveSheet.Activate
-    
-    'Refresh all chart in the IRCurve tab
     DoEvents
     Application.ScreenUpdating = False
     Dim myChart As ChartObject
-    For Each myChart In irCurveSheet.ChartObjects
+    For Each myChart In ActiveSheet.ChartObjects
         myChart.Chart.Refresh
     Next myChart
     
-    'These DoEvents are sporadically placed to make sure the chart updates correclty as Excel tends to have issues with this
     DoEvents
     
-    irCurveSheet.ChartObjects("Chart 3").Activate
+    ActiveSheet.ChartObjects("Chart 3").Activate
     ActiveChart.FullSeriesCollection(2).DataLabels.Select
     Selection.AutoText = True
     ActiveChart.FullSeriesCollection(3).DataLabels.Select
     Selection.AutoText = True
     DoEvents
     
-    irCurveSheet.ChartObjects("Chart 8").Activate
+    ActiveSheet.ChartObjects("Chart 8").Activate
     ActiveChart.Axes(xlValue).Select
     
     Dim minRateValue As Double: minRateValue = Range("rngGraphRateMin").Value2
@@ -239,7 +234,7 @@ Sub ChangeCharts()
     ActiveChart.Axes(xlValue).MinimumScale = scaledMinRateValue
     ActiveChart.Axes(xlValue).MaximumScale = scaledMaxRateValue
     
-    irCurveSheet.ChartObjects("Chart 9").Activate
+    ActiveSheet.ChartObjects("Chart 9").Activate
     ActiveChart.Axes(xlValue).Select
     ActiveChart.Axes(xlValue).MinimumScale = Range("rngGraphDFMin").Value2 * (1 - scaleAxesDFMinMax)
     ActiveChart.Axes(xlValue).MaximumScale = Range("rngGraphDFMax").Value2 * (1 + scaleAxesDFMinMax)
@@ -247,8 +242,6 @@ Sub ChangeCharts()
     Range("A1").Select
     
     Application.ScreenUpdating = True
-    
-    On Error GoTo 0
     
 End Sub
 
