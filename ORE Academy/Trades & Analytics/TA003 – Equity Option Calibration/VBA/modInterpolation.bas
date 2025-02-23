@@ -31,54 +31,83 @@ End Function
 Function InterpolateX(ByRef XInput As Range, _
                       ByRef XRangeInput As Range, _
                       ByRef YRangeInput As Range, _
-                      Optional isLogLinear As Boolean = False) As Double
+                      Optional isLogLinear As Boolean = False, _
+                      Optional flatExtrapolation As Boolean = True) As Double
+    
+    Dim X As Variant: X = XInput.Value2
+    Dim XData() As Variant: XData = XRangeInput
+    Dim YData() As Variant: YData = YRangeInput
+    
+    InterpolateX = InterpolateXArray(X, XData, YData, isLogLinear, flatExtrapolation)
+    
+End Function
+
+'Linear or loglinear interpolation from array
+Function InterpolateXArray(X As Variant, _
+                           XData() As Variant, _
+                           YData() As Variant, _
+                           Optional isLogLinear As Boolean = False, _
+                           Optional flatExtrapolation As Boolean = True) As Double
                       
     Dim X1, X2, PX1, PX2, Y1, Y2 As Variant
-    Dim X As Variant: X = XInput.Value2
-    Dim XRange() As Variant: XRange = XRangeInput
-    Dim YRange() As Variant: YRange = YRangeInput
     
-    XRange = convertRangeOfDatesToLong(XRange)
-    YRange = convertRangeOfDatesToLong(YRange)
+    XData = convertRangeOfDatesToLong(XData)
+    YData = convertRangeOfDatesToLong(YData)
     
-    Dim minX As Variant: minX = WorksheetFunction.Min(XRange)
-    Dim maxX As Variant: maxX = WorksheetFunction.Max(XRange)
+    Dim minX As Variant: minX = WorksheetFunction.Min(XData)
+    Dim maxX As Variant: maxX = WorksheetFunction.Max(XData)
     
     'Convert to long if date
     If IsDate(X) Then X = Int(CDbl(X))
     
-    'Case 1: X is smaller than minimum of X range
-    If (X < minX) Then X = minX
-    
-    'Case 2: X is larger than maximum of X range
-    If (X > maxX) Then X = maxX
+    If flatExtrapolation Then
+        'Case 1: X is smaller than minimum of X range
+        If (X < minX) Then X = minX
+        
+        'Case 2: X is larger than maximum of X range
+        If (X > maxX) Then X = maxX
     
         'Determine data table points around searchvalues
-    X1 = WorksheetFunction.XLookup(X, XRange, XRange, , -1)
-    X2 = WorksheetFunction.XLookup(X, XRange, XRange, , 1)
-    
-    PX1 = WorksheetFunction.Match(X1, XRange, 0)
-    PX2 = WorksheetFunction.Match(X2, XRange, 0)
-    
-    If UBound(YRange, 1) > 1 Then
-        Y1 = YRange(PX1, 1)
-        Y2 = YRange(PX2, 1)
+        X1 = WorksheetFunction.XLookup(X, XData, XData, , -1)
+        X2 = WorksheetFunction.XLookup(X, XData, XData, , 1)
     Else
-        Y1 = YRange(1, PX1)
-        Y2 = YRange(1, PX2)
+        If (X < minX) Then
+            X1 = XData(1, 1)
+            X1 = XData(2, 1)
+        ElseIf (X > maxX) Then
+            Dim nbData As Long: nbData = UBound(XData, 1)
+            
+            X1 = XData(nbData - 1, 1)
+            X2 = XData(nbData, 1)
+        Else
+            'Determine data table points around searchvalues
+            X1 = WorksheetFunction.XLookup(X, XData, XData, , -1)
+            X2 = WorksheetFunction.XLookup(X, XData, XData, , 1)
+        End If
+    End If
+    
+    PX1 = WorksheetFunction.Match(X1, XData, 0)
+    PX2 = WorksheetFunction.Match(X2, XData, 0)
+    
+    If UBound(YData, 1) > 1 Then
+        Y1 = YData(PX1, 1)
+        Y2 = YData(PX2, 1)
+    Else
+        Y1 = YData(1, PX1)
+        Y2 = YData(1, PX2)
     End If
     
     If Y1 <> Y2 Then
-        InterpolateX = getLinearInterpolation(X, X1, X2, Y1, Y2, isLogLinear)
+        InterpolateXArray = getLinearInterpolation(X, X1, X2, Y1, Y2, isLogLinear)
     Else
-        InterpolateX = Y1
+        InterpolateXArray = Y1
     End If
     
 End Function
 
 'Bilinear interpolation
 Function InterpolateXY(ByRef XInput As Range, _
-                       YInput As Range, _
+                       ByRef YInput As Range, _
                        ByRef XRangeInput As Range, _
                        ByRef YRangeInput As Range, _
                        ByRef ValueTable As Range) As Double
@@ -89,6 +118,7 @@ Function InterpolateXY(ByRef XInput As Range, _
     Dim XRange() As Variant: XRange = XRangeInput
     Dim YRange() As Variant: YRange = YRangeInput
     
+    ' Step 1 -
     XRange = convertRangeOfDatesToLong(XRange)
     YRange = convertRangeOfDatesToLong(YRange)
     
@@ -143,5 +173,4 @@ Function InterpolateXY(ByRef XInput As Range, _
     InterpolateXY = C12 + FY * (C34 - C12)
     
 End Function
-
 

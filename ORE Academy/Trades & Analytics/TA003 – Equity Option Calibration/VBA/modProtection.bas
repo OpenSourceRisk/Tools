@@ -35,7 +35,6 @@ Sub unprotectAllSheets()
     Dim ws As Worksheet
     Dim pwd As String
     
-    
     For Each ws In Worksheets
         ws.Unprotect
     Next ws

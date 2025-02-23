@@ -1,4 +1,18 @@
-Excel Solver might the cause of a few issues:
+
+IMPORTANT UPDATE
+The preferred option is to NOT use the solver (i.e. and to select FALSE in the 'Install Solver Addin').
+A solution has been found to improve the accuracy of the 'GoalSeek' tool and it yields results as accurate as the solver add-in.
+
+FIX - TO IMPROVE GOALSEEK ACCURACY:
+1. Select 'Options' from the 'File' tab
+2. Choose 'Formulas'
+3. On the top-right hand side, click on 'Enable iterative calculation' 
+4. Reduce the 'Maximum Change' figure to the desired accuracy (i.e 0.0000000000001)
+
+
+
+
+Excel Solver might be the cause of a few issues:
 
 
 1. Solver Installation
