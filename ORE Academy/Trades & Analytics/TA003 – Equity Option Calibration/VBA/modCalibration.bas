@@ -1,25 +1,92 @@
 Attribute VB_Name = "modCalibration"
 Option Explicit
 
-'Perform an Excel Goal Seek root-finding algorithm to estimate the implied volatility of each Call option
-Sub getImpliedVolForCallOptions()
+'Execute a Newton-Raphson regression (i.e. the Excel GoalSeek feature)
+Sub executeGoalSeek(cellToFormulaChange As Range, _
+                    valueToMatch As Variant, _
+                    cellToChange As Range)
+                                 
+    cellToFormulaChange.GoalSeek Goal:=valueToMatch, ChangingCell:=cellToChange
+                    
+End Sub
+
+Sub launchIndividualEQQuoteCalibration()
     
+    Dim protectSheets As Integer: protectSheets = Range("rngProtectWorksheets").Value2
+    Dim nameWorksheet As String: nameWorksheet = "EQImpliedVol"
     Dim refHeaderCell As Range: Set refHeaderCell = Range("rngEQImpliedVolCalibAnchor")
-    Dim countQuotes As Integer: countQuotes = Range("rngNbEqVolQuotes").Value2
+    Dim quoteNumber As Integer: quoteNumber = Range("rngEQCurrentQuoteNumber").Value2
+    Dim quoteType As String: quoteType = Range("rngEQCurrentQuoteType").Value2
+    Dim offsetRows As Integer
+    Dim i As Integer
+        
+    If protectSheets = 1 Then Call unprotectSingleSheets(nameWorksheet)
+    'Application.ScreenUpdating = False
+    Application.Calculation = xlManual
     
-    Call executeGoalSeek(refHeaderCell, countQuotes, "Call Price", "Calculated Call Price", "Call Volatility")
+    Call calibrateImpliedVol
+    
+    If quoteType = "CALL" Then offsetRows = 0 Else offsetRows = 3
+    refHeaderCell.Offset(offsetRows, quoteNumber + 1).Value2 = Range("rngEQRootFindingModifiableDF").Value2
+    
+    'Application.ScreenUpdating = True
+    Application.Calculation = xlAutomatic
+    If protectSheets = 1 Then Call protectSingleSheets(nameWorksheet)
     
 End Sub
 
-'Perform an Excel Goal Seek root-finding algorithm to estimate the implied volatility of each Put option
-Sub getImpliedVolForPutOptions()
+Sub launchAllEQQuotesCalibration()
     
+    Dim protectSheets As Integer: protectSheets = Range("rngProtectWorksheets").Value2
+    Dim nameWorksheet As String: nameWorksheet = "EQImpliedVol"
     Dim refHeaderCell As Range: Set refHeaderCell = Range("rngEQImpliedVolCalibAnchor")
-    Dim countQuotes As Integer: countQuotes = Range("rngNbEqVolQuotes").Value2
+    Dim nbQuotes As Integer: nbQuotes = Range("rngNbEqVolQuotes").Value2
+    Dim quoteNumber As Integer
+    Dim quoteType As String
+    Dim offsetRows As Integer
+    Dim i As Integer
     
-    Call executeGoalSeek(refHeaderCell, countQuotes, "Put Price", "Calculated Put Price", "Put Volatility")
+    If protectSheets = 1 Then Call unprotectSingleSheets(nameWorksheet)
+    
+    Call EQResetCalibration
+    
+    'Application.ScreenUpdating = False
+    Application.Calculation = xlManual
+    
+    For i = 1 To nbQuotes
+        Call calibrateImpliedVol
+        quoteNumber = Range("rngEQCurrentQuoteNumber").Value2
+        quoteType = Range("rngEQCurrentQuoteType").Value2
+        If quoteType = "CALL" Then offsetRows = 0 Else offsetRows = 3
+        refHeaderCell.Offset(offsetRows, quoteNumber + 1).Value2 = Range("rngEQRootFindingModifiableDF").Value2
+        Call EQQuoteNumberUP
+    Next i
+    
+    'Application.ScreenUpdating = True
+    Application.Calculation = xlAutomatic
+    If protectSheets = 1 Then Call protectSingleSheets(nameWorksheet)
     
 End Sub
+
+'Perform a calibration of the current implied volatility quote
+Sub calibrateImpliedVol()
+    
+    Dim useSolver As Boolean: useSolver = Range("rngUseSolver").Value2
+    Dim nameRootFindingTargetCellValue As String: nameRootFindingTargetCellValue = "rngEQRootFindingTargetValue"
+    Dim nameRootFindingModifiableCell As String: nameRootFindingModifiableCell = "rngEQRootFindingModifiableDF"
+    Dim nameRootFindingAccuracyCell As String: nameRootFindingAccuracyCell = "rngArbitrageThreshold"
+
+    If useSolver Then
+        nameRootFindingTargetCellValue = "rngEQRootFindingTargetValue"
+        Call setSolverParameters(nameRootFindingTargetCellValue, nameRootFindingModifiableCell, nameRootFindingAccuracyCell)
+        SolverSolve UserFinish:=True, ShowRef:="SolverDisplayFunction"
+    Else
+        Call executeGoalSeek(Range(nameRootFindingTargetCellValue), 0, Range(nameRootFindingModifiableCell))
+    End If
+    
+End Sub
+
+
 
 'Set the Solver Parameters (objective, engine type, number of steps...)
 Sub setSolverParameters(nameRootFindingTargetCell As String, _
@@ -67,7 +134,7 @@ Sub RootFindingAllIRQuote()
     Dim nameRootFindingModifiableCell As String: nameRootFindingModifiableCell = "rngRootFindingModifiableDF"
     Dim nameRootFindingAccuracyCell As String: nameRootFindingAccuracyCell = "rngArbitrageThresholdYieldCurve"
     Dim protectSheets As Integer: protectSheets = Range("rngProtectWorksheets").Value2
-    Dim nameWorksheet As String: nameWorksheet = "IRCurve"
+    Dim nameWorksheet As String: nameWorksheet = "IRCurves"
     
     If protectSheets = 1 Then Call unprotectSingleSheets(nameWorksheet)
     
@@ -134,7 +201,7 @@ Sub runRootFindingFindingIndividualIRQuote()
     Dim nameRootFindingModifiableCell As String: nameRootFindingModifiableCell = "rngRootFindingModifiableDF"
     Dim nameRootFindingAccuracyCell As String: nameRootFindingAccuracyCell = "rngArbitrageThresholdYieldCurve"
     Dim protectSheets As Integer: protectSheets = Range("rngProtectWorksheets").Value2
-    Dim nameWorksheet As String: nameWorksheet = "IRCurve"
+    Dim nameWorksheet As String: nameWorksheet = "IRCurves"
     
     If protectSheets = 1 Then Call unprotectSingleSheets(nameWorksheet)
     
@@ -172,8 +239,7 @@ Sub RootFindingIndividualIRQuote(nameRootFindingTargetCell As String, _
     If useSolver Then
         SolverSolve UserFinish:=True, ShowRef:="SolverDisplayFunction"
     Else
-        
-        Call executeGoalSeekBootstrapping(Range(nameRootFindingTargetCell), targetValue, Range(nameRootFindingModifiableCell))
+        Call executeGoalSeek(Range(nameRootFindingTargetCell), targetValue, Range(nameRootFindingModifiableCell))
     End If
     
     'Refresh the spreadsheet
@@ -190,7 +256,7 @@ Function SolverDisplayFunction(Reason As Integer)
 
      ThisWorkbook.RefreshAll
      DoEvents
-     'Application.Wait (Now + TimeValue("0:00:02"))
+     'Application.Wait (Now + TimeValue("0:00:01") / 2)
      SolverDisplayFunction = 0
      
 End Function
@@ -201,13 +267,13 @@ Sub ChangeCharts()
     'The code below is just related to visuals so we can skip if an error occures
     On Error Resume Next
     
-    Dim irCurveSheet As Worksheet: Set irCurveSheet = Worksheets("IRCurve")
+    Dim irCurveSheet As Worksheet: Set irCurveSheet = Worksheets("IRCurves")
     Dim scaleAxesRatesMinMax As Double: scaleAxesRatesMinMax = 0.075
     Dim scaleAxesDFMinMax As Double: scaleAxesDFMinMax = 0.00075
     
     irCurveSheet.Activate
     
-    'Refresh all chart in the IRCurve tab
+    'Refresh all charts in the IRCurves tab
     DoEvents
     Application.ScreenUpdating = False
     Dim myChart As ChartObject
